@@ -1,6 +1,6 @@
 use raylib::prelude::*;
 
-use crate::{rail::Rail, rail_edge::RailEdge, raylib_structs::{ScreenDims, WorldBounds}, test_cases::{test_case_square_1, test_case_square_2, test_case_square_3, test_case_square_4, test_case_square_5, test_case_square_6}, vector_basics::midpoint, xy::{xy, XY}};
+use crate::{rail::Rail, rail_edge::RailEdge, raylib_structs::{ScreenDims, WorldBounds}, solver::get_jumps, solver_types::{Direction, SolverState}, test_cases::{test_case_square_1, test_case_square_2, test_case_square_3, test_case_square_4, test_case_square_5, test_case_square_6}, vector_basics::midpoint, xy::{xy, XY}};
 
 struct DrawContext<'a> {
     pub d: RaylibDrawHandle<'a>,
@@ -102,6 +102,7 @@ pub fn raylib_main() {
         max_x: 1.2,
         max_y: 1.2,
     };
+    let jumps = get_jumps(&test_data);
 
     // Initialize Raylib
     let (mut rl, thread) = raylib::init()
@@ -128,7 +129,7 @@ pub fn raylib_main() {
         // draw_line(&mut d, screen_w, screen_h, 0.1, 0.9, 0.9, 0.1, Color::RED);
 
         // draw rail edges
-        recursive_draw_rail_edges(&mut ctx, &test_data, 0);
-        recursive_draw_rail_edge_ids(&mut ctx, &test_data, 0);
+        recursive_draw_rail_edges(&mut ctx, &test_data.root_rail, 0);
+        recursive_draw_rail_edge_ids(&mut ctx, &test_data.root_rail, 0);
     }
 }

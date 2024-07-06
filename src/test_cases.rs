@@ -1,6 +1,6 @@
 // we construct a nested structure of rails
 
-use crate::{rail::Rail, rail_edge::rail_edge, xy::xy};
+use crate::{rail::Rail, rail_edge::rail_edge, solver_types::{Direction, SolverState}, xy::xy};
 
 /** a square with just one rail */
 pub fn test_case_square_1() -> Rail {
@@ -188,7 +188,7 @@ pub fn test_case_square_5() -> Rail {
 }
 
 /** a square with an outer rail and five inner rails */
-pub fn test_case_square_6() -> Rail {
+pub fn test_case_square_6() -> SolverState {
     let outer_rail = Rail {
         id: 0,
         edges: Vec::from([
@@ -254,5 +254,10 @@ pub fn test_case_square_6() -> Rail {
             }
         ])
     };
-    outer_rail
+    SolverState {
+        root_rail: outer_rail,
+        seed_point: xy(0.5, -0.1),
+        seed_direction: Direction::Clockwise,
+        pipe_spacing: 0.05,
+    }
 }
