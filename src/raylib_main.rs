@@ -2,6 +2,12 @@ use raylib::prelude::*;
 
 use crate::{rail::Rail, rail_edge::RailEdge, raylib_structs::{ScreenDims, WorldBounds}, test_cases::{test_case_square_1, test_case_square_2, test_case_square_3, test_case_square_4, test_case_square_5, test_case_square_6}, xy::{xy, XY}};
 
+struct DrawContext<'a> {
+    pub d: RaylibDrawHandle<'a>,
+    pub screen_bounds: &'a ScreenDims,
+    pub world_bounds: &'a WorldBounds,
+}
+
 fn draw_line(d: &mut RaylibDrawHandle, screen_bounds: &ScreenDims, 
     relative_screen_x1: f64, relative_screen_y1: f64, relative_screen_x2: f64, relative_screen_y2: f64,
     color: Color
@@ -21,15 +27,15 @@ pub fn world_to_relative_screen(screen_bounds: &ScreenDims, world_bounds: &World
     xy(relative_screen_x, relative_screen_y)
 }
 
-fn draw_rail_edge(d: &mut RaylibDrawHandle, screen_bounds: &ScreenDims, world_bounds: &WorldBounds, edge: &RailEdge, color: Color) -> () {
+fn draw_rail_edge(ctx: &mut DrawContext, edge: &RailEdge, color: Color) -> () {
     let a = &edge.a;
     let b = &edge.b;
-    let a_screen  = world_to_relative_screen(&screen_bounds, world_bounds, a);
-    let b_screen  = world_to_relative_screen(&screen_bounds, world_bounds, b);
-    draw_line(d, &screen_bounds, a_screen.x, a_screen.y, b_screen.x, b_screen.y, color);
+    let a_screen  = world_to_relative_screen(ctx.screen_bounds, ctx.world_bounds, a);
+    let b_screen  = world_to_relative_screen(ctx.screen_bounds, ctx.world_bounds, b);
+    draw_line(&mut ctx.d, ctx.screen_bounds, a_screen.x, a_screen.y, b_screen.x, b_screen.y, color);
 }
 
-fn recursive_draw_rail(d: &mut RaylibDrawHandle, screen_bounds: &ScreenDims, world_bounds: &WorldBounds, rail: &Rail, depth: i32) -> () {
+fn recursive_draw_rail(ctx: &mut DrawContext, rail: &Rail, depth: i32) -> () {
     let color = {
         if (depth % 2 == 0) {
             Color::RED
@@ -38,10 +44,10 @@ fn recursive_draw_rail(d: &mut RaylibDrawHandle, screen_bounds: &ScreenDims, wor
         }
     };
     rail.edges.iter().for_each(|edge| {
-        draw_rail_edge(d, screen_bounds, world_bounds, edge, color);
+        draw_rail_edge(ctx, edge, color);
     });
     rail.child_rails.iter().for_each(|child_rail| {
-        recursive_draw_rail(d, screen_bounds, world_bounds, child_rail, depth+1)
+        recursive_draw_rail(ctx, child_rail, depth+1)
     })
 }
 
@@ -66,15 +72,19 @@ pub fn raylib_main() {
             width: rl.get_screen_width(),
             height: rl.get_screen_height(),
         };
-        let mut d = rl.begin_drawing(&thread);
+        let mut ctx = DrawContext {
+            d: rl.begin_drawing(&thread),
+            screen_bounds: &screen_bounds,
+            world_bounds: &world_bounds,
+        };
 
-        d.clear_background(Color::WHITE); 
+        ctx.d.clear_background(Color::WHITE); 
 
         // draw screen calibration lines
         // draw_line(&mut d, screen_w, screen_h, 0.1, 0.1, 0.9, 0.9, Color::BLACK);
         // draw_line(&mut d, screen_w, screen_h, 0.1, 0.9, 0.9, 0.1, Color::RED);
 
         // draw rails
-        recursive_draw_rail(&mut d, &screen_bounds, &world_bounds, &test_data, 0);
+        recursive_draw_rail(&mut ctx, &test_data, 0);
     }
 }
