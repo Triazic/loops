@@ -1,4 +1,5 @@
 mod xy;
+mod line;
 mod vector_basics;
 mod test_cases;
 mod rail;

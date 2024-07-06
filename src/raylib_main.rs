@@ -1,6 +1,6 @@
 use raylib::prelude::*;
 
-use crate::{rail::Rail, rail_edge::RailEdge, raylib_structs::{ScreenDims, WorldBounds}, solver::get_jumps, solver_types::{Direction, SolverState}, test_cases::{test_case_square_1, test_case_square_2, test_case_square_3, test_case_square_4, test_case_square_5, test_case_square_6}, vector_basics::midpoint, xy::{xy, XY}};
+use crate::{rail::Rail, rail_edge::RailEdge, raylib_structs::{ScreenDims, WorldBounds}, solver::{get_all_jumps, get_seed_jumps}, solver_types::{Direction, Jump, SolverState}, test_cases::{test_case_square_1, test_case_square_2, test_case_square_3, test_case_square_4, test_case_square_5, test_case_square_6}, vector_basics::midpoint, xy::{xy, XY}};
 
 struct DrawContext<'a> {
     pub d: RaylibDrawHandle<'a>,
@@ -17,6 +17,12 @@ fn draw_line(d: &mut RaylibDrawHandle, screen_bounds: &ScreenDims,
     let y1 = ((screen_bounds.height as f64) * relative_screen_y1) as i32;
     let y2 = ((screen_bounds.height as f64) * relative_screen_y2) as i32;
     d.draw_line(x1, y1, x2, y2, color);
+}
+
+fn draw_line_world_co_ords(ctx: &mut DrawContext, a: &XY, b: &XY, color: Color) -> () {
+    let a_screen  = world_to_relative_screen(ctx.screen_bounds, ctx.world_bounds, a);
+    let b_screen  = world_to_relative_screen(ctx.screen_bounds, ctx.world_bounds, b);
+    draw_line(&mut ctx.d, ctx.screen_bounds, a_screen.x, a_screen.y, b_screen.x, b_screen.y, color);
 }
 
 fn draw_text(d: &mut RaylibDrawHandle, screen_bounds: &ScreenDims, 
@@ -44,9 +50,7 @@ pub fn world_to_relative_screen(screen_bounds: &ScreenDims, world_bounds: &World
 fn draw_rail_edge(ctx: &mut DrawContext, edge: &RailEdge, color: Color) -> () {
     let a = &edge.a;
     let b = &edge.b;
-    let a_screen  = world_to_relative_screen(ctx.screen_bounds, ctx.world_bounds, a);
-    let b_screen  = world_to_relative_screen(ctx.screen_bounds, ctx.world_bounds, b);
-    draw_line(&mut ctx.d, ctx.screen_bounds, a_screen.x, a_screen.y, b_screen.x, b_screen.y, color);
+    draw_line_world_co_ords(ctx, a, b, color);
 }
 
 fn draw_rail_edge_id(ctx: &mut DrawContext, edge: &RailEdge, color: Color) -> () {
@@ -94,6 +98,14 @@ fn recursive_draw_rail_edge_ids(ctx: &mut DrawContext, rail: &Rail, depth: i32) 
     })
 }
 
+fn draw_jumps(ctx: &mut DrawContext, jumps: &Vec<Jump>) -> () {
+    jumps.iter().for_each(|jump| {
+        let a = &jump.source_point;
+        let b = &jump.dest_point;
+        draw_line_world_co_ords(ctx, &a, &b, Color::BLUE)
+    })
+}
+
 pub fn raylib_main() {
     let test_data = test_case_square_6();
     let world_bounds = WorldBounds {
@@ -102,7 +114,7 @@ pub fn raylib_main() {
         max_x: 1.2,
         max_y: 1.2,
     };
-    let jumps = get_jumps(&test_data);
+    let jumps = get_all_jumps(&test_data);
 
     // Initialize Raylib
     let (mut rl, thread) = raylib::init()
@@ -110,6 +122,7 @@ pub fn raylib_main() {
         .title("Render stuff")
         .build();
     rl.set_target_fps(60);
+    rl.set_trace_log(TraceLogLevel::LOG_WARNING);
 
     while !rl.window_should_close() {
         let screen_bounds = ScreenDims {
@@ -131,5 +144,8 @@ pub fn raylib_main() {
         // draw rail edges
         recursive_draw_rail_edges(&mut ctx, &test_data.root_rail, 0);
         recursive_draw_rail_edge_ids(&mut ctx, &test_data.root_rail, 0);
+
+        // draw jumps
+        draw_jumps(&mut ctx, &jumps);
     }
 }

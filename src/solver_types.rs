@@ -1,5 +1,6 @@
 use crate::{rail::Rail, xy::XY};
 
+#[derive(Clone, PartialEq)]
 pub enum Direction {
     Clockwise,
     AntiClockwise
@@ -12,6 +13,7 @@ pub struct Jump {
     pub to_rail_id: i32,
     pub source_point: XY,
     pub dest_point: XY,
+    pub dest_edge_index: usize,
     pub dest_direction: Direction,
 }
 
