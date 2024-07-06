@@ -1,6 +1,8 @@
 mod xy;
-use num_traits::Num;
 mod vector_basics;
+mod test_cases;
+mod rail;
+mod rail_edge;
 use xy::XY;
 fn main() {
     let xy = XY { x: 10.0, y: 10.0 };
