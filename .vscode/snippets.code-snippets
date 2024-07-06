@@ -1,0 +1,12 @@
+{
+	"function": {
+		"scope": "rust",
+		"prefix": "fun",
+		"body": [
+			"pub fn $1($2) -> $3 {",
+			"    $0",
+			"}"
+		],
+		"description": "make a new 'with' fn"
+	},
+}
