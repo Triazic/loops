@@ -1,6 +1,4 @@
-use num_traits::Num;
-
-pub struct XY<T: Num> {
-    pub x: T,
-    pub y: T,
+pub struct XY {
+    pub x: f64,
+    pub y: f64,
 }
