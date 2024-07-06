@@ -26,12 +26,32 @@ pub struct SolverState {
 
 impl SolverState {
     pub fn get_rail_by_id(&self, rail_id: i32) -> &Rail {
-        todo!("get_rail_by_id");
+        fn rec(rail:&Rail, rail_id: i32) -> &Rail {
+            if (rail.id == rail_id) {
+                return rail;
+            }
+            return rec(&rail.child_rails[0], rail_id); // dogshit
+        }
+        rec(&self.root_rail, rail_id)
     }
     pub fn get_edge_by_id(&self, edge_id: i32) -> &RailEdge {
-        todo!("get_edge_by_id");
+        fn rec(rail:&Rail, edge_id: i32) -> &RailEdge {
+            let res = rail.edges.iter().find(|edge| edge.id == edge_id);
+            match res {
+                Some(edge) => edge,
+                None => rec(&rail.child_rails[0], edge_id) // dogshit
+            }
+        }
+        rec(&self.root_rail, edge_id)
     }
     pub fn get_edge_by_parent_edge_id(&self, parent_edge_id: i32) -> &RailEdge {
-        todo!("get_edge_by_id");
+        fn rec(rail:&Rail, parent_edge_id: i32) -> &RailEdge {
+            let res = rail.edges.iter().find(|edge| edge.parent_edge_id.is_some() && edge.parent_edge_id.unwrap() == parent_edge_id);
+            match res {
+                Some(edge) => edge,
+                None => rec(&rail.child_rails[0], parent_edge_id) // dogshit
+            }
+        }
+        rec(&self.root_rail, parent_edge_id)
     }
 }
