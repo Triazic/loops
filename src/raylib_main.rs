@@ -1,6 +1,6 @@
 use raylib::prelude::*;
 
-use crate::{rail::Rail, rail_edge::RailEdge, raylib_structs::{ScreenDims, WorldBounds}, solver::{get_all_jumps, get_seed_jumps}, solver_types::{Direction, Jump, SolverState}, test_cases::{test_case_square_6}, vector_basics::midpoint, xy::{xy, XY}};
+use crate::{bounded_line::BoundedLine, pipe_chain::get_pipe_chain, rail::Rail, rail_edge::RailEdge, raylib_structs::{ScreenDims, WorldBounds}, solver::{get_all_jumps, get_seed_jumps}, solver_types::{Direction, Jump, SolverState}, test_cases::test_case_square_6, vector_basics::midpoint, xy::{xy, XY}};
 
 struct DrawContext<'a> {
     pub d: RaylibDrawHandle<'a>,
@@ -122,6 +122,14 @@ fn draw_jumps(ctx: &mut DrawContext, jumps: &Vec<Jump>) -> () {
     })
 }
 
+fn draw_pipe_chain(ctx: &mut DrawContext, pipe_chain: &Vec<BoundedLine>) -> () {
+    pipe_chain.iter().for_each(|pipe_segment| {
+        let a = &pipe_segment.a;
+        let b = &pipe_segment.b;
+        draw_line_world_co_ords(ctx, &a, &b, Color::BLACK);
+    })
+}
+
 pub fn raylib_main() {
     let test_data = test_case_square_6();
     let world_bounds = WorldBounds {
@@ -131,6 +139,7 @@ pub fn raylib_main() {
         max_y: 1.2,
     };
     let jumps = get_all_jumps(&test_data);
+    let pipe_chain = get_pipe_chain(&test_data, &jumps);
 
     // Initialize Raylib
     let (mut rl, thread) = raylib::init()
@@ -163,5 +172,8 @@ pub fn raylib_main() {
 
         // draw jumps
         draw_jumps(&mut ctx, &jumps);
+
+        // draw pipe chain
+        draw_pipe_chain(&mut ctx, &pipe_chain);
     }
 }

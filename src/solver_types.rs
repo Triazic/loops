@@ -1,3 +1,5 @@
+use itertools::Itertools;
+
 use crate::{rail::Rail, rail_edge::RailEdge, xy::XY};
 
 #[derive(Clone, PartialEq, Debug)]
@@ -13,6 +15,7 @@ pub struct Jump {
     /** if rail_id is -1, this counts as 'termination' */
     pub to_rail_id: i32,
     pub source_point: XY,
+    pub source_edge_id: i32,
     pub dest_point: XY,
     pub dest_edge_id: i32,
     pub dest_direction: Direction,
@@ -40,6 +43,16 @@ impl SolverState {
             let res = rail.edges.iter().find(|edge| edge.id == edge_id);
             match res {
                 Some(edge) => edge,
+                None => rec(&rail.child_rails[0], edge_id) // dogshit
+            }
+        }
+        rec(&self.root_rail, edge_id)
+    }
+    pub fn get_edge_index_by_id(&self, edge_id: i32) -> usize {
+        fn rec(rail:&Rail, edge_id: i32) -> usize {
+            let res = rail.edges.iter().find_position(|edge| edge.id == edge_id);
+            match res {
+                Some((index, _)) => index,
                 None => rec(&rail.child_rails[0], edge_id) // dogshit
             }
         }

@@ -9,6 +9,8 @@ use xy::XY;
 mod raylib_structs;
 mod solver_types;
 mod solver;
+mod pipe_chain;
+mod bounded_line;
 
 fn main() {
     raylib_main::raylib_main();
