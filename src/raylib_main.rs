@@ -15,17 +15,19 @@ pub fn raylib_main() {
 
     // Initialize Raylib
     let (mut rl, thread) = raylib::init()
-        .size(1000, 1000)
+        .size(3840, 2160)
         .title("Render stuff")
         .build();
 
     while !rl.window_should_close() {
+        let screen_w = rl.get_screen_width();
+        let screen_h = rl.get_screen_height();
         let mut d = rl.begin_drawing(&thread);
 
         d.clear_background(Color::WHITE);
 
         // Draw lines
-        draw_line(&mut d, 1000, 1000, 0.1, 0.1, 0.9, 0.9);
-        draw_line(&mut d, 1000, 1000, 0.1, 0.9, 0.9, 0.1);
+        draw_line(&mut d, screen_w, screen_h, 0.1, 0.1, 0.9, 0.9);
+        draw_line(&mut d, screen_w, screen_h, 0.1, 0.9, 0.9, 0.1);
     }
 }
