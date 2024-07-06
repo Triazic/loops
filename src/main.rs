@@ -6,6 +6,7 @@ mod rail_edge;
 mod raylib_main;
 use xy::XY;
 mod raylib_structs;
+mod solver_types;
 
 fn main() {
     raylib_main::raylib_main();

@@ -5,6 +5,7 @@ use crate::{rail_edge::RailEdge, xy::XY};
  *  a polygon
  */
 pub struct Rail {
+    pub id: i32,
     pub edges: Vec<RailEdge>,
     pub child_rails: Vec<Rail>,
 }
