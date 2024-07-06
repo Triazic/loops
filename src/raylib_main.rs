@@ -1,6 +1,6 @@
 use raylib::prelude::*;
 
-use crate::{rail::Rail, rail_edge::RailEdge, raylib_structs::{ScreenDims, WorldBounds}, solver::{get_all_jumps, get_seed_jumps}, solver_types::{Direction, Jump, SolverState}, test_cases::{test_case_square_1, test_case_square_2, test_case_square_3, test_case_square_4, test_case_square_5, test_case_square_6}, vector_basics::midpoint, xy::{xy, XY}};
+use crate::{rail::Rail, rail_edge::RailEdge, raylib_structs::{ScreenDims, WorldBounds}, solver::{get_all_jumps, get_seed_jumps}, solver_types::{Direction, Jump, SolverState}, test_cases::{test_case_square_6}, vector_basics::midpoint, xy::{xy, XY}};
 
 struct DrawContext<'a> {
     pub d: RaylibDrawHandle<'a>,

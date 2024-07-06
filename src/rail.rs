@@ -6,6 +6,7 @@ use crate::{rail_edge::RailEdge, xy::XY};
  */
 pub struct Rail {
     pub id: i32,
+    pub parent_rail_id: Option<i32>,
     pub edges: Vec<RailEdge>,
     pub child_rails: Vec<Rail>,
 }
