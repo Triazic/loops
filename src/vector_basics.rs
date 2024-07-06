@@ -1,13 +1,23 @@
 use crate::xy::XY;
 
-pub fn magnitude(xy: XY) -> f64 {
-    f64::sqrt(xy.x * xy.x + xy.y * xy.y)
+fn magnitude(v: &XY) -> f64 {
+    (v.x * v.x + v.y * v.y).sqrt()
 }
 
-pub fn divide_scalar(xy: XY, scalar: f64) -> XY {
-    XY { x: xy.x / scalar, y: xy.y / scalar }
+fn normalize(v: &XY) -> XY {
+    let mag = magnitude(v);
+    XY {
+        x: v.x / mag,
+        y: v.y / mag,
+    }
 }
 
-pub fn blah(xy: XY) -> f64 {
-    2.0
+fn dot(v1: &XY, v2: &XY) -> f64 {
+    v1.x * v2.x + v1.y * v2.y
+}
+
+fn get_angle_between_two_vectors(v1: &XY, v2: &XY) -> f64 {
+    let _v1 = normalize(v1);
+    let _v2 = normalize(v2);
+    (dot(&_v1, &_v2)).acos()
 }
