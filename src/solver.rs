@@ -77,11 +77,11 @@ pub fn get_all_jumps(state: &SolverState) -> Vec<Jump> {
     let seed_point = &seed_jumps[0].dest_point; // TODO dogshit
     let seed_direction = &seed_jumps[0].dest_direction; // TODO dogshit
     let seed_edge_id = seed_jumps[0].dest_edge_id; // TODO dogshit
-    let iter_1 = get_jumps_atomic(&state.root_rail, &seed_point, seed_edge_id, &seed_direction, state.pipe_spacing);
+    let iter_1 = get_jumps_atomic(&state, state.root_rail.id, &seed_point, seed_edge_id, &seed_direction, state.pipe_spacing);
     let forward_jump = iter_1.iter().find(|jump| jump.to_rail_id > jump.from_rail_id).expect("Ooops no forward jump"); // TODO dogshit
     let next_point = &forward_jump.dest_point;
     let next_rail = &state.root_rail.child_rails[0].child_rails[0]; // todo dogshit
-    let iter_2 = get_jumps_atomic(next_rail, next_point, forward_jump.dest_edge_id, &forward_jump.dest_direction, state.pipe_spacing);
+    let iter_2 = get_jumps_atomic(&state, next_rail.id, next_point, forward_jump.dest_edge_id, &forward_jump.dest_direction, state.pipe_spacing);
 
     returner.extend(seed_jumps);
     returner.extend(iter_1);
@@ -108,15 +108,15 @@ pub fn get_rail_depth(rail:&Rail) -> i32 {
     get_rail_depth_rec(rail, 0)
 }
 
-pub fn get_edge_by_id(rail:&Rail, edge_id:u16) -> &RailEdge {
+pub fn get_edge_by_id(rail:&Rail, edge_id:i32) -> &RailEdge {
     rail.edges.iter().find(|edge| edge.id == edge_id).expect(&format!("oops.. no edge found with id {}", edge_id))
 }
 
-pub fn get_edge_by_parent_edge_id(rail:&Rail, parent_edge_id:u16) -> &RailEdge {
+pub fn get_edge_by_parent_edge_id(rail:&Rail, parent_edge_id:i32) -> &RailEdge {
     rail.edges.iter().find(|edge| edge.parent_edge_id.is_some() && edge.parent_edge_id.unwrap() == parent_edge_id).expect(&format!("oops.. no edge found with id {}", parent_edge_id))
 }
 
-fn get_jumps_atomic(rail:&Rail, point:&XY, edge_id: u16, direction:&Direction, pipe_spacing: f64) -> Vec<Jump> {
+fn get_jumps_atomic(state: &SolverState, rail_id: i32, point:&XY, edge_id: i32, direction:&Direction, pipe_spacing: f64) -> Vec<Jump> {
     // let exit_jump = {
     //     let direction = 
     //     match(direction) {
@@ -124,6 +124,8 @@ fn get_jumps_atomic(rail:&Rail, point:&XY, edge_id: u16, direction:&Direction, p
     //         Direction::AntiClockwise => normalise(&subtract(&edge.b, &edge.a)), // clockwise
     //     };
     // }
+
+    let rail = state.get_rail_by_id(rail_id);
 
     let no_rails = rail.child_rails.is_empty();
     if (no_rails) {
@@ -149,7 +151,7 @@ fn get_jumps_atomic(rail:&Rail, point:&XY, edge_id: u16, direction:&Direction, p
 
             let escape_jump = {
                 let proposed_rail = next_rail;
-                let next_edge_id = get_edge_by_parent_edge_id(next_rail, edge_id);
+                let next_edge_id = state.get_edge_by_parent_edge_id(edge_id);
                 let proposed_edge = next_edge_id;
                 
                 // project our current point onto the proposed edge
@@ -177,8 +179,8 @@ fn get_jumps_atomic(rail:&Rail, point:&XY, edge_id: u16, direction:&Direction, p
 
             let forward_jump = {
                 let proposed_rail = next_next_rail;
-                let next_edge_id = get_edge_by_parent_edge_id(next_rail, edge_id).id;
-                let next_next_edge= get_edge_by_parent_edge_id(next_next_rail, next_edge_id);
+                let next_edge_id = state.get_edge_by_parent_edge_id(edge_id).id;
+                let next_next_edge= state.get_edge_by_parent_edge_id(next_edge_id);
                 let proposed_edge = next_next_edge;
                 
                 // project our current point onto the proposed edge
