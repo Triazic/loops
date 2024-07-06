@@ -1,6 +1,6 @@
 use raylib::prelude::*;
 
-use crate::{rail_edge::RailEdge, test_cases::test_case_square_6, xy::{xy, XY}};
+use crate::{rail::Rail, rail_edge::RailEdge, test_cases::test_case_square_6, xy::{xy, XY}};
 
 fn draw_line(d: &mut RaylibDrawHandle, screen_w: i32, screen_h: i32, 
     relative_screen_x1: f64, relative_screen_y1: f64, relative_screen_x2: f64, relative_screen_y2: f64,
@@ -29,6 +29,22 @@ fn draw_rail_edge(d: &mut RaylibDrawHandle, screen_w: i32, screen_h: i32, edge: 
     draw_line(d, screen_w, screen_h, a_screen.x, a_screen.y, b_screen.x, b_screen.y, color);
 }
 
+fn recursive_draw_rail(d: &mut RaylibDrawHandle, screen_w: i32, screen_h: i32, min_world_x: f64, min_world_y: f64, max_world_x: f64, max_world_y: f64, rail: &Rail, depth: i32) -> () {
+    let color = {
+        if (depth % 2 == 0) {
+            Color::RED
+        } else {
+            Color::GREEN
+        }
+    };
+    rail.edges.iter().for_each(|edge| {
+        draw_rail_edge(d, screen_w, screen_h, edge, min_world_x, min_world_y, max_world_x, max_world_y, color);
+    });
+    rail.child_rails.iter().for_each(|child_rail| {
+        recursive_draw_rail(d, screen_w, screen_h, min_world_x, min_world_y, max_world_x, max_world_y, child_rail, depth+1)
+    })
+}
+
 pub fn raylib_main() {
     let test_data = test_case_square_6();
     let min_world_x = -0.2;
@@ -50,13 +66,11 @@ pub fn raylib_main() {
 
         d.clear_background(Color::WHITE); 
 
-        // Draw calibration lines
-        draw_line(&mut d, screen_w, screen_h, 0.1, 0.1, 0.9, 0.9, Color::BLACK);
-        draw_line(&mut d, screen_w, screen_h, 0.1, 0.9, 0.9, 0.1, Color::RED);
+        // draw screen calibration lines
+        // draw_line(&mut d, screen_w, screen_h, 0.1, 0.1, 0.9, 0.9, Color::BLACK);
+        // draw_line(&mut d, screen_w, screen_h, 0.1, 0.9, 0.9, 0.1, Color::RED);
 
         // draw rails
-        test_data.edges.iter().for_each(|edge| {
-            draw_rail_edge(&mut d, screen_w, screen_h, edge, min_world_x, min_world_y, max_world_x, max_world_y, Color::BLACK);
-        })
+        recursive_draw_rail(&mut d, screen_w, screen_h, min_world_x, min_world_y, max_world_x, max_world_y, &test_data, 0);
     }
 }

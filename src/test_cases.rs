@@ -184,7 +184,7 @@ pub fn test_case_square_6() -> Rail {
         child_rails: Vec::from([
             Rail {
                 edges: Vec::from([
-                    rail_edge(xy(0.05, 0.05), xy(0.05, 0.8),  4, Some(0)), // LEFT
+                    rail_edge(xy(0.05, 0.05), xy(0.05, 0.95),  4, Some(0)), // LEFT
                     rail_edge(xy(0.05, 0.95), xy(0.95, 0.95), 5, Some(1)), // TOP
                     rail_edge(xy(0.95, 0.95), xy(0.95, 0.05), 6, Some(2)), // RIGHT
                     rail_edge(xy(0.95, 0.05), xy(0.05, 0.05), 7, Some(3)), // BOTTOM
@@ -200,10 +200,10 @@ pub fn test_case_square_6() -> Rail {
                         child_rails: Vec::from([
                             Rail {
                                 edges: Vec::from([
-                                    rail_edge(xy(0.15, 0.15), xy(0.15, 0.95), 12,  Some(8)), // LEFT
-                                    rail_edge(xy(0.15, 0.95), xy(0.95, 0.95), 13,  Some(9)), // TOP
-                                    rail_edge(xy(0.95, 0.95), xy(0.95, 0.15), 14,  Some(10)), // RIGHT
-                                    rail_edge(xy(0.95, 0.15), xy(0.15, 0.15), 15,  Some(11)), // BOTTOM
+                                    rail_edge(xy(0.15, 0.15), xy(0.15, 0.85), 12,  Some(8)), // LEFT
+                                    rail_edge(xy(0.15, 0.85), xy(0.85, 0.85), 13,  Some(9)), // TOP
+                                    rail_edge(xy(0.85, 0.85), xy(0.85, 0.15), 14,  Some(10)), // RIGHT
+                                    rail_edge(xy(0.85, 0.15), xy(0.15, 0.15), 15,  Some(11)), // BOTTOM
                                 ]),
                                 child_rails: Vec::from([
                                     Rail {
