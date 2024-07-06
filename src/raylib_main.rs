@@ -1,6 +1,6 @@
 use raylib::prelude::*;
 
-use crate::{rail::Rail, rail_edge::RailEdge, raylib_structs::{ScreenDims, WorldBounds}, test_cases::{test_case_square_1, test_case_square_2, test_case_square_3, test_case_square_4, test_case_square_5, test_case_square_6}, xy::{xy, XY}};
+use crate::{rail::Rail, rail_edge::RailEdge, raylib_structs::{ScreenDims, WorldBounds}, test_cases::{test_case_square_1, test_case_square_2, test_case_square_3, test_case_square_4, test_case_square_5, test_case_square_6}, vector_basics::midpoint, xy::{xy, XY}};
 
 struct DrawContext<'a> {
     pub d: RaylibDrawHandle<'a>,
@@ -19,6 +19,20 @@ fn draw_line(d: &mut RaylibDrawHandle, screen_bounds: &ScreenDims,
     d.draw_line(x1, y1, x2, y2, color);
 }
 
+fn draw_text(d: &mut RaylibDrawHandle, screen_bounds: &ScreenDims, 
+    relative_screen_x: f64, relative_screen_y: f64, text: &str,
+    color: Color
+) -> () {
+    let x = ((screen_bounds.width as f64) * relative_screen_x) as i32;
+    let y = ((screen_bounds.height as f64) * relative_screen_y) as i32;
+    let font_size = ((screen_bounds.height as f64) * 0.017) as i32;
+    let text_width = d.measure_text(text, font_size);
+    let text_height = d.measure_text("M", font_size);
+    let text_x = (x - text_width/2);
+    let text_y = (y - text_height/2);
+    d.draw_text(&text, text_x, text_y, font_size, color);
+}
+
 pub fn world_to_relative_screen(screen_bounds: &ScreenDims, world_bounds: &WorldBounds, world_xy:&XY) -> XY {
     let relative_world_x = (world_xy.x - world_bounds.min_x) / (world_bounds.max_x - world_bounds.min_x);
     let relative_world_y = (world_xy.y - world_bounds.min_y) / (world_bounds.max_y - world_bounds.min_y);
@@ -35,7 +49,20 @@ fn draw_rail_edge(ctx: &mut DrawContext, edge: &RailEdge, color: Color) -> () {
     draw_line(&mut ctx.d, ctx.screen_bounds, a_screen.x, a_screen.y, b_screen.x, b_screen.y, color);
 }
 
-fn recursive_draw_rail(ctx: &mut DrawContext, rail: &Rail, depth: i32) -> () {
+fn draw_rail_edge_id(ctx: &mut DrawContext, edge: &RailEdge, color: Color) -> () {
+    let a = &edge.a;
+    let b = &edge.b;
+    let mid_point = midpoint(&Vec::from([a, b]));
+    let screen  = world_to_relative_screen(ctx.screen_bounds, ctx.world_bounds, &mid_point);
+    let text = 
+        match &edge.parent_edge_id {
+            None => format!("{:?}", &edge.id),
+            Some(id) => format!("{:?} ({})", &edge.id, &id),
+        };
+    draw_text(&mut ctx.d, ctx.screen_bounds, screen.x, screen.y, &text, color)
+}
+
+fn recursive_draw_rail_edges(ctx: &mut DrawContext, rail: &Rail, depth: i32) -> () {
     let color = {
         if (depth % 2 == 0) {
             Color::RED
@@ -47,7 +74,23 @@ fn recursive_draw_rail(ctx: &mut DrawContext, rail: &Rail, depth: i32) -> () {
         draw_rail_edge(ctx, edge, color);
     });
     rail.child_rails.iter().for_each(|child_rail| {
-        recursive_draw_rail(ctx, child_rail, depth+1)
+        recursive_draw_rail_edges(ctx, child_rail, depth+1)
+    })
+}
+
+fn recursive_draw_rail_edge_ids(ctx: &mut DrawContext, rail: &Rail, depth: i32) -> () {
+    let color = {
+        if (depth % 2 == 0) {
+            Color::RED
+        } else {
+            Color::GREEN
+        }
+    };
+    rail.edges.iter().for_each(|edge| {
+        draw_rail_edge_id(ctx, edge, color);
+    });
+    rail.child_rails.iter().for_each(|child_rail| {
+        recursive_draw_rail_edge_ids(ctx, child_rail, depth+1)
     })
 }
 
@@ -84,7 +127,8 @@ pub fn raylib_main() {
         // draw_line(&mut d, screen_w, screen_h, 0.1, 0.1, 0.9, 0.9, Color::BLACK);
         // draw_line(&mut d, screen_w, screen_h, 0.1, 0.9, 0.9, 0.1, Color::RED);
 
-        // draw rails
-        recursive_draw_rail(&mut ctx, &test_data, 0);
+        // draw rail edges
+        recursive_draw_rail_edges(&mut ctx, &test_data, 0);
+        recursive_draw_rail_edge_ids(&mut ctx, &test_data, 0);
     }
 }
