@@ -1,6 +1,6 @@
 use raylib::prelude::*;
 
-use crate::{rail::Rail, rail_edge::RailEdge, test_cases::test_case_square_6, xy::{xy, XY}};
+use crate::{rail::Rail, rail_edge::RailEdge, test_cases::{test_case_square_1, test_case_square_2, test_case_square_3, test_case_square_4, test_case_square_5, test_case_square_6}, xy::{xy, XY}};
 
 fn draw_line(d: &mut RaylibDrawHandle, screen_w: i32, screen_h: i32, 
     relative_screen_x1: f64, relative_screen_y1: f64, relative_screen_x2: f64, relative_screen_y2: f64,
@@ -46,7 +46,7 @@ fn recursive_draw_rail(d: &mut RaylibDrawHandle, screen_w: i32, screen_h: i32, m
 }
 
 pub fn raylib_main() {
-    let test_data = test_case_square_6();
+    let test_data = test_case_square_1();
     let min_world_x = -0.2;
     let min_world_y = -0.2;
     let max_world_x = 1.2;
