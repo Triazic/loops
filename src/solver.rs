@@ -16,7 +16,7 @@ pub fn get_seed_jumps(state: &SolverState) -> Vec<Jump> {
         to_rail_id: 0,
         source_point: state.seed_point.clone(),
         dest_point: dest_point,
-        dest_edge_index: seed_edge_index,
+        dest_edge_id: 3, // TODO hack
         dest_direction: state.seed_direction.clone(),
     };
 
@@ -39,7 +39,7 @@ pub fn get_seed_jumps(state: &SolverState) -> Vec<Jump> {
                     to_rail_id: -1,
                     source_point: b,
                     dest_point: c,
-                    dest_edge_index: 3,
+                    dest_edge_id: 3,
                     dest_direction: Direction::Clockwise, // doesn't matter
                 }
             }
@@ -53,7 +53,7 @@ pub fn get_seed_jumps(state: &SolverState) -> Vec<Jump> {
                     to_rail_id: -1,
                     source_point: d,
                     dest_point: c,
-                    dest_edge_index: 3,
+                    dest_edge_id: 3,
                     dest_direction: Direction::Clockwise, // doesn't matter
                 }
             }
@@ -76,12 +76,12 @@ pub fn get_all_jumps(state: &SolverState) -> Vec<Jump> {
 
     let seed_point = &seed_jumps[0].dest_point; // TODO dogshit
     let seed_direction = &seed_jumps[0].dest_direction; // TODO dogshit
-    let seed_edge_index = seed_jumps[0].dest_edge_index; // TODO dogshit
-    let iter_1 = get_jumps_atomic(&state.root_rail, &seed_point, seed_edge_index, &seed_direction, state.pipe_spacing);
+    let seed_edge_id = seed_jumps[0].dest_edge_id; // TODO dogshit
+    let iter_1 = get_jumps_atomic(&state.root_rail, &seed_point, seed_edge_id, &seed_direction, state.pipe_spacing);
     let forward_jump = iter_1.iter().find(|jump| jump.to_rail_id > jump.from_rail_id).expect("Ooops no forward jump"); // TODO dogshit
     let next_point = &forward_jump.dest_point;
-    let next_rail = &state.root_rail.child_rails[0]; // todo dogshit
-    let iter_2 = get_jumps_atomic(next_rail, next_point, forward_jump.dest_edge_index, &forward_jump.dest_direction, state.pipe_spacing);
+    let next_rail = &state.root_rail.child_rails[0].child_rails[0]; // todo dogshit
+    let iter_2 = get_jumps_atomic(next_rail, next_point, forward_jump.dest_edge_id, &forward_jump.dest_direction, state.pipe_spacing);
 
     returner.extend(seed_jumps);
     returner.extend(iter_1);
@@ -116,7 +116,7 @@ pub fn get_edge_by_parent_edge_id(rail:&Rail, parent_edge_id:u16) -> &RailEdge {
     rail.edges.iter().find(|edge| edge.parent_edge_id.is_some() && edge.parent_edge_id.unwrap() == parent_edge_id).expect(&format!("oops.. no edge found with id {}", parent_edge_id))
 }
 
-fn get_jumps_atomic(rail:&Rail, point:&XY, edge_index: usize, direction:&Direction, pipe_spacing: f64) -> Vec<Jump> {
+fn get_jumps_atomic(rail:&Rail, point:&XY, edge_id: u16, direction:&Direction, pipe_spacing: f64) -> Vec<Jump> {
     // let exit_jump = {
     //     let direction = 
     //     match(direction) {
@@ -143,8 +143,7 @@ fn get_jumps_atomic(rail:&Rail, point:&XY, edge_index: usize, direction:&Directi
             todo!("havent handled depth of 1");
         }
         if (depth > 1) {
-            let edge = &rail.edges[edge_index];
-            let edge_id = edge.id;
+            let edge_id = edge_id;
             let next_rail = &rail.child_rails[0];
             let next_next_rail = &next_rail.child_rails[0];
 
@@ -164,14 +163,14 @@ fn get_jumps_atomic(rail:&Rail, point:&XY, edge_index: usize, direction:&Directi
                     };
     
                 let b = add(&a, &multiply_scalar(&direction_vec, pipe_spacing));
-                let c = add(&point, &multiply_scalar(&direction_vec, pipe_spacing));
+                let c = add(&point, &multiply_scalar(&direction_vec, pipe_spacing)); // wrong, should be one rail upwards
     
                 Jump {
                     from_rail_id: proposed_rail.id.clone(),
                     to_rail_id: rail.id.clone(),
                     source_point: c.clone(), 
                     dest_point: b.clone(),
-                    dest_edge_index: 0, // this is wrong
+                    dest_edge_id: proposed_edge.id,
                     dest_direction: direction.clone(),
                 }
             };
@@ -200,7 +199,7 @@ fn get_jumps_atomic(rail:&Rail, point:&XY, edge_index: usize, direction:&Directi
                     to_rail_id: proposed_rail.id.clone(),
                     source_point: e.clone(),
                     dest_point: d.clone(),
-                    dest_edge_index: 0, // this is wrong
+                    dest_edge_id: proposed_edge.id,
                     dest_direction: direction.clone(),
                 }
             };

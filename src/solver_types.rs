@@ -13,7 +13,7 @@ pub struct Jump {
     pub to_rail_id: i32,
     pub source_point: XY,
     pub dest_point: XY,
-    pub dest_edge_index: usize,
+    pub dest_edge_id: u16,
     pub dest_direction: Direction,
 }
 

@@ -122,7 +122,7 @@ pub fn raylib_main() {
         .title("Render stuff")
         .build();
     rl.set_target_fps(60);
-    rl.set_trace_log(TraceLogLevel::LOG_WARNING);
+    rl.set_trace_log(TraceLogLevel::LOG_ERROR);
 
     while !rl.window_should_close() {
         let screen_bounds = ScreenDims {
