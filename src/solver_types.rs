@@ -1,11 +1,12 @@
 use crate::{rail::Rail, rail_edge::RailEdge, xy::XY};
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Debug)]
 pub enum Direction {
     Clockwise,
     AntiClockwise
 }
 
+#[derive(Debug)]
 pub struct Jump {
     /** if rail_id is -1, this counts as 'termination' */
     pub from_rail_id: i32,

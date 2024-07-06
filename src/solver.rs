@@ -82,12 +82,19 @@ pub fn get_all_jumps(state: &SolverState) -> Vec<Jump> {
     let iter_1 = get_jumps_atomic(&state, state.root_rail.id, &seed_point, seed_edge_id, &seed_direction, state.pipe_spacing);
     let forward_jump = iter_1.iter().find(|jump| jump.to_rail_id > jump.from_rail_id).expect("Ooops no forward jump"); // TODO dogshit
     let next_point = &forward_jump.dest_point;
-    let next_rail = &state.root_rail.child_rails[0].child_rails[0]; // todo dogshit
+    let next_rail_id = forward_jump.to_rail_id;
+    let next_rail = state.get_rail_by_id(next_rail_id);
     let iter_2 = get_jumps_atomic(&state, next_rail.id, next_point, forward_jump.dest_edge_id, &forward_jump.dest_direction, state.pipe_spacing);
+    let forward_jump = iter_2.iter().find(|jump| jump.to_rail_id > jump.from_rail_id).expect("Ooops no forward jump"); // TODO dogshit
+    let next_point = &forward_jump.dest_point;
+    let next_rail_id = forward_jump.to_rail_id;
+    let next_rail = state.get_rail_by_id(next_rail_id);
+    let iter_3 = get_jumps_atomic(&state, next_rail.id, next_point, forward_jump.dest_edge_id, &forward_jump.dest_direction, state.pipe_spacing);
 
     returner.extend(seed_jumps);
     returner.extend(iter_1);
     returner.extend(iter_2);
+    returner.extend(iter_3);
     returner
 }
 
@@ -118,6 +125,13 @@ pub fn get_edge_by_parent_edge_id(rail:&Rail, parent_edge_id:i32) -> &RailEdge {
     rail.edges.iter().find(|edge| edge.parent_edge_id.is_some() && edge.parent_edge_id.unwrap() == parent_edge_id).expect(&format!("oops.. no edge found with id {}", parent_edge_id))
 }
 
+pub fn reverse_direction(direction:&Direction) -> Direction {
+    match direction {
+        Direction::Clockwise => Direction::AntiClockwise,
+        Direction::AntiClockwise => Direction::Clockwise,
+    }
+}
+
 fn get_jumps_atomic(state: &SolverState, rail_id: i32, point:&XY, edge_id: i32, direction:&Direction, pipe_spacing: f64) -> Vec<Jump> {
     // let exit_jump = {
     //     let direction = 
@@ -144,7 +158,89 @@ fn get_jumps_atomic(state: &SolverState, rail_id: i32, point:&XY, edge_id: i32, 
             todo!("havent handled depth of 0");
         }
         if (depth == 1) {
-            todo!("havent handled depth of 1");
+            let edge_id = edge_id;
+            let edge = state.get_edge_by_id(edge_id);
+            let next_rail = &rail.child_rails[0];
+
+            let escape_jump = match rail.parent_rail_id {
+                None => None, // not sure what to do here... 
+                Some(_) => 
+                    {
+                        let rail_to_escape_from = next_rail;
+                        let edge_to_escape_from = state.get_edge_by_parent_edge_id(edge_id);
+        
+                        let rail_to_escape_to = 
+                            match rail.parent_rail_id {
+                                Some(rail_id) => Some(state.get_rail_by_id(rail_id)),
+                                None => None,
+                            };
+                        let edge_to_escape_to = 
+                            match edge.parent_edge_id {
+                                Some(parent_edge) => Some(state.get_edge_by_id(parent_edge)),
+                                None => None,
+                            };
+                        
+                        let a = project_point_onto_edge(&edge_to_escape_from, point);
+                        let b = project_point_onto_edge(edge_to_escape_to.unwrap_or(&edge), point);
+            
+                        // assume maintain current loop direction. therefore projection to find exit point is the opposite?
+                        let direction_vec = 
+                            match(direction) {
+                                Direction::Clockwise => normalise(&subtract(&edge_to_escape_from.a, &edge_to_escape_from.b)), // anti-clockwise
+                                Direction::AntiClockwise => normalise(&subtract(&edge_to_escape_from.b, &edge_to_escape_from.a)), // clockwise
+                            };
+            
+                        let source_point = add(&a, &multiply_scalar(&direction_vec, pipe_spacing));
+                        let dest_point = add(&b, &multiply_scalar(&direction_vec, pipe_spacing));
+            
+                        Some(Jump {
+                            from_rail_id: rail_to_escape_from.id.clone(),
+                            to_rail_id: rail.id.clone(),
+                            source_point: source_point.clone(),
+                            dest_point: dest_point.clone(), 
+                            dest_edge_id: {
+                                match rail_to_escape_to {
+                                    Some(rail) => rail.id,
+                                    None => -1,
+                                }
+                            },
+                            dest_direction: direction.clone(),
+                        })
+                    }
+            };
+
+            let forward_jump = {
+                let proposed_rail = next_rail;
+                let next_edge = state.get_edge_by_parent_edge_id(edge_id);
+                let proposed_edge = next_edge;
+                
+                // project our current point onto the proposed edge
+                let a = project_point_onto_edge(&proposed_edge, point);
+    
+                // assume maintain current loop direction. therefore projection to find exit point is the opposite?
+                let direction_vec = 
+                    match(direction) {
+                        Direction::Clockwise => normalise(&subtract(&proposed_edge.a, &proposed_edge.b)), // anti-clockwise
+                        Direction::AntiClockwise => normalise(&subtract(&proposed_edge.b, &proposed_edge.a)), // clockwise
+                    };
+
+                let d = add(&a, &multiply_scalar(&direction_vec, pipe_spacing*2.));
+                let e = add(&point, &multiply_scalar(&direction_vec, pipe_spacing*2.));
+    
+                Some(Jump {
+                    from_rail_id: rail.id.clone(),
+                    to_rail_id: proposed_rail.id.clone(),
+                    source_point: e.clone(),
+                    dest_point: d.clone(),
+                    dest_edge_id: proposed_edge.id,
+                    dest_direction: reverse_direction(direction),
+                })
+            };
+
+            return [
+                forward_jump, 
+                escape_jump
+            ].into_iter().filter_map(|x| x).collect_vec();
         }
         if (depth > 1) {
             let edge_id = edge_id;

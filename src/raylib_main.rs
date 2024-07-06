@@ -19,6 +19,21 @@ fn draw_line(d: &mut RaylibDrawHandle, screen_bounds: &ScreenDims,
     d.draw_line(x1, y1, x2, y2, color);
 }
 
+fn draw_circle(d: &mut RaylibDrawHandle, screen_bounds: &ScreenDims, 
+    relative_screen_x1: f64, relative_screen_y1: f64,
+    color: Color
+) -> () {
+    let x = ((screen_bounds.width as f64) * relative_screen_x1) as i32;
+    let y = ((screen_bounds.height as f64) * relative_screen_y1) as i32;
+    let radius = ((screen_bounds.width as f64) * 0.0025) as f32;
+    d.draw_circle(x, y, radius, color);
+}
+
+fn draw_circle_world_co_ords(ctx: &mut DrawContext, a: &XY, color: Color) -> () {
+    let a_screen  = world_to_relative_screen(ctx.screen_bounds, ctx.world_bounds, a);
+    draw_circle(&mut ctx.d, ctx.screen_bounds, a_screen.x, a_screen.y, color);
+}
+
 fn draw_line_world_co_ords(ctx: &mut DrawContext, a: &XY, b: &XY, color: Color) -> () {
     let a_screen  = world_to_relative_screen(ctx.screen_bounds, ctx.world_bounds, a);
     let b_screen  = world_to_relative_screen(ctx.screen_bounds, ctx.world_bounds, b);
@@ -102,7 +117,8 @@ fn draw_jumps(ctx: &mut DrawContext, jumps: &Vec<Jump>) -> () {
     jumps.iter().for_each(|jump| {
         let a = &jump.source_point;
         let b = &jump.dest_point;
-        draw_line_world_co_ords(ctx, &a, &b, Color::BLUE)
+        draw_line_world_co_ords(ctx, &a, &b, Color::BLUE);
+        draw_circle_world_co_ords(ctx, &b, Color::BLUE);
     })
 }
 
