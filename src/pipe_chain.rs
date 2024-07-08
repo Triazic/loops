@@ -118,7 +118,6 @@ pub fn get_pipe_chain(state: &SolverState, jumps: &Vec<Jump>) -> Vec<BoundedLine
         let next_point = b.clone();
 
         pipe_chain.push(segment);
-        println!("next edge id ${}", next_edge_id);
         rec(pipe_chain, jumps, state, &next_point, next_edge_id, rail.id, direction, depth+1);
     }
     rec(&mut returner, &jumps, &state, &seed_forward_jump.dest_point, seed_forward_jump.dest_edge_id, seed_forward_jump.to_rail_id, &seed_forward_jump.dest_direction, 0);

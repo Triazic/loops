@@ -145,10 +145,66 @@ fn get_jumps_atomic(state: &SolverState, rail_id: i32, point:&XY, edge_id: i32, 
     // }
 
     let rail = state.get_rail_by_id(rail_id);
+    let edge = state.get_edge_by_id(edge_id);
 
     let no_rails = rail.child_rails.is_empty();
     if (no_rails) {
-        panic!("haven't handled no rails");
+        // we only need to return an escape jump
+        let parent_rail_id = rail.parent_rail_id.expect("how no parent_rail_id?");
+        let escape_jump = match rail.parent_rail_id {
+            None => None, // not sure what to do here... 
+            Some(_) => 
+                {
+                    let rail_to_escape_from = rail;
+                    let edge_to_escape_from = edge;
+    
+                    let rail_to_escape_to = 
+                        match rail.parent_rail_id {
+                            Some(parent_rail_id) => {
+                                let parent_rail = state.get_rail_by_id(parent_rail_id);
+                                Some(parent_rail)
+                            },
+                            None => None,
+                        };
+                    let edge_to_escape_to = 
+                        match edge.parent_edge_id {
+                            Some(parent_edge_id) => {
+                                let parent_edge = state.get_edge_by_id(parent_edge_id);
+                                Some(parent_edge)
+                            },
+                            None => None,
+                        };
+                    
+                    let a = project_point_onto_edge(&edge_to_escape_from, point);
+                    let b = project_point_onto_edge(edge_to_escape_to.unwrap_or(&edge), point);
+        
+                    // assume maintain current loop direction. therefore projection to find exit point is the opposite?
+                    let direction_vec = 
+                        match(direction) {
+                            Direction::Clockwise => normalise(&subtract(&edge_to_escape_from.a, &edge_to_escape_from.b)), // anti-clockwise
+                            Direction::AntiClockwise => normalise(&subtract(&edge_to_escape_from.b, &edge_to_escape_from.a)), // clockwise
+                        };
+        
+                    let source_point = add(&a, &multiply_scalar(&direction_vec, pipe_spacing));
+                    let dest_point = add(&b, &multiply_scalar(&direction_vec, pipe_spacing));
+        
+                    Some(Jump {
+                        from_rail_id: rail_to_escape_from.id.clone(),
+                        to_rail_id: rail_to_escape_to.unwrap().id,
+                        source_point: source_point.clone(),
+                        dest_point: dest_point.clone(), 
+                        dest_edge_id: {
+                            match edge_to_escape_to {
+                                Some(edge) => edge.id,
+                                None => -1,
+                            }
+                        },
+                        dest_direction: reverse_direction(&direction),
+                        source_edge_id: edge_to_escape_from.id,
+                    })
+                }
+        };
+        return [escape_jump].into_iter().filter_map(|x| x).collect_vec();
     }
     let more_than_one_rail = rail.child_rails.len() > 1;
     if (more_than_one_rail) {
@@ -300,8 +356,6 @@ fn get_jumps_atomic(state: &SolverState, rail_id: i32, point:&XY, edge_id: i32, 
                         })
                     }
             };
-            
-            
 
             let forward_jump = {
                 let proposed_rail = next_next_rail;
