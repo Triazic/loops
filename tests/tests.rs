@@ -89,8 +89,12 @@ mod tests {
             jump.from_rail_id == 3 && jump.to_rail_id == 1
             && jump.dest_direction == Direction::AntiClockwise
         });
+        let wrong_escape = jumps.iter().find(|jump| {
+            jump.from_rail_id == 3 && jump.to_rail_id == 2
+        });
         assert!(forward_one.is_some(), "no expected forward_one jump");
         assert!(forward_two.is_some(), "no expected forward_two jump");
         assert!(escape_one.is_some(), "no expected escape_one jump");
+        assert!(escape_one.is_none(), "has wrong_escape");
     }
 }
