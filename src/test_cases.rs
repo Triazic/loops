@@ -2,83 +2,104 @@
 
 use crate::{rail::Rail, rail_edge::rail_edge, solver_types::{Direction, SolverState}, xy::xy};
 
-// /** a square with just one rail */
-// pub fn test_case_square_1() -> Rail {
-//     let outer_rail = Rail {
-//         id: 0,
-//         edges: Vec::from([
-//             rail_edge(xy(0., 0.), xy(0., 1.), 0, None), // LEFT
-//             rail_edge(xy(0., 1.), xy(1., 1.), 1, None), // TOP
-//             rail_edge(xy(1., 1.), xy(1., 0.), 2, None), // RIGHT
-//             rail_edge(xy(1., 0.), xy(0., 0.), 3, None), // BOTTOM
-//         ]),
-//         child_rails: Vec::new(),
-//     };
-//     outer_rail
-// }
+/** a square with just one rail */
+pub fn test_case_square_1() -> SolverState {
+    let outer_rail = Rail {
+        id: 0,
+        parent_rail_id: None,
+        edges: Vec::from([
+            rail_edge(xy(0., 0.), xy(0., 1.), 0, None), // LEFT
+            rail_edge(xy(0., 1.), xy(1., 1.), 1, None), // TOP
+            rail_edge(xy(1., 1.), xy(1., 0.), 2, None), // RIGHT
+            rail_edge(xy(1., 0.), xy(0., 0.), 3, None), // BOTTOM
+        ]),
+        child_rails: Vec::new(),
+    };
+    SolverState {
+        root_rail: outer_rail,
+        seed_point: xy(0.4, -0.1),
+        seed_direction: Direction::Clockwise,
+        pipe_spacing: 0.05,
+    }
+}
 
-// /** a square with one inner rail and an outer rail */
-// pub fn test_case_square_2() -> Rail {
-//     let outer_rail = Rail {
-//         id: 0,
-//         edges: Vec::from([
-//             rail_edge(xy(0., 0.), xy(0., 1.), 0, None), // LEFT
-//             rail_edge(xy(0., 1.), xy(1., 1.), 1, None), // TOP
-//             rail_edge(xy(1., 1.), xy(1., 0.), 2, None), // RIGHT
-//             rail_edge(xy(1., 0.), xy(0., 0.), 3, None), // BOTTOM
-//         ]),
-//         child_rails: Vec::from([
-//             Rail {
-//                 id: 1,
-//                 edges: Vec::from([
-//                     rail_edge(xy(0.2, 0.2), xy(0.2, 0.8), 4, Some(0)), // LEFT
-//                     rail_edge(xy(0.2, 0.8), xy(0.8, 0.8), 5, Some(1)), // TOP
-//                     rail_edge(xy(0.8, 0.8), xy(0.8, 0.2), 6, Some(2)), // RIGHT
-//                     rail_edge(xy(0.8, 0.2), xy(0.2, 0.2), 7, Some(3)), // BOTTOM
-//                 ]),
-//                 child_rails: Vec::new()
-//             }
-//         ])
-//     };
-//     outer_rail
-// }
+/** a square with one inner rail and an outer rail */
+pub fn test_case_square_2() -> SolverState {
+    let outer_rail = Rail {
+        id: 0,
+        parent_rail_id: None,
+        edges: Vec::from([
+            rail_edge(xy(0., 0.), xy(0., 1.), 0, None), // LEFT
+            rail_edge(xy(0., 1.), xy(1., 1.), 1, None), // TOP
+            rail_edge(xy(1., 1.), xy(1., 0.), 2, None), // RIGHT
+            rail_edge(xy(1., 0.), xy(0., 0.), 3, None), // BOTTOM
+        ]),
+        child_rails: Vec::from([
+            Rail {
+                id: 1,
+                parent_rail_id: Some(0),
+                edges: Vec::from([
+                    rail_edge(xy(0.2, 0.2), xy(0.2, 0.8), 4, Some(0)), // LEFT
+                    rail_edge(xy(0.2, 0.8), xy(0.8, 0.8), 5, Some(1)), // TOP
+                    rail_edge(xy(0.8, 0.8), xy(0.8, 0.2), 6, Some(2)), // RIGHT
+                    rail_edge(xy(0.8, 0.2), xy(0.2, 0.2), 7, Some(3)), // BOTTOM
+                ]),
+                child_rails: Vec::new()
+            }
+        ])
+    };
+    SolverState {
+        root_rail: outer_rail,
+        seed_point: xy(0.3, -0.1),
+        seed_direction: Direction::Clockwise,
+        pipe_spacing: 0.1,
+    }
+}
 
 // /** a square with an outer rail and two inner rails */
-// pub fn test_case_square_3() -> Rail {
-//     let outer_rail = Rail {
-//         id: 0,
-//         edges: Vec::from([
-//             rail_edge(xy(0., 0.), xy(0., 1.), 0, None), // LEFT
-//             rail_edge(xy(0., 1.), xy(1., 1.), 1, None), // TOP
-//             rail_edge(xy(1., 1.), xy(1., 0.), 2, None), // RIGHT
-//             rail_edge(xy(1., 0.), xy(0., 0.), 3, None), // BOTTOM
-//         ]),
-//         child_rails: Vec::from([
-//             Rail {
-//                 id: 1,
-//                 edges: Vec::from([
-//                     rail_edge(xy(0.2, 0.2), xy(0.2, 0.8), 4, Some(0)), // LEFT
-//                     rail_edge(xy(0.2, 0.8), xy(0.8, 0.8), 5, Some(1)), // TOP
-//                     rail_edge(xy(0.8, 0.8), xy(0.8, 0.2), 6, Some(2)), // RIGHT
-//                     rail_edge(xy(0.8, 0.2), xy(0.2, 0.2), 7, Some(3)), // BOTTOM
-//                 ]),
-//                 child_rails: Vec::from([
-//                     Rail {
-//                         id: 2,
-//                         edges: Vec::from([
-//                             rail_edge(xy(0.4, 0.4), xy(0.4, 0.6), 8,  Some(4)), // LEFT
-//                             rail_edge(xy(0.4, 0.6), xy(0.6, 0.6), 9,  Some(5)), // TOP
-//                             rail_edge(xy(0.6, 0.6), xy(0.6, 0.4), 10, Some(6)), // RIGHT
-//                             rail_edge(xy(0.6, 0.4), xy(0.4, 0.4), 11, Some(7)), // BOTTOM
-//                         ]),
-//                         child_rails: Vec::new()
-//                     }
-//                 ])
-//             }
-//         ])
-//     };
-//     outer_rail
-// }
+pub fn test_case_square_3() -> SolverState {
+    let outer_rail = Rail {
+        id: 0,
+        parent_rail_id: None,
+        edges: Vec::from([
+            rail_edge(xy(0., 0.), xy(0., 1.), 0, None), // LEFT
+            rail_edge(xy(0., 1.), xy(1., 1.), 1, None), // TOP
+            rail_edge(xy(1., 1.), xy(1., 0.), 2, None), // RIGHT
+            rail_edge(xy(1., 0.), xy(0., 0.), 3, None), // BOTTOM
+        ]),
+        child_rails: Vec::from([
+            Rail {
+                id: 1,
+                parent_rail_id: Some(0),
+                edges: Vec::from([
+                    rail_edge(xy(0.2, 0.2), xy(0.2, 0.8), 4, Some(0)), // LEFT
+                    rail_edge(xy(0.2, 0.8), xy(0.8, 0.8), 5, Some(1)), // TOP
+                    rail_edge(xy(0.8, 0.8), xy(0.8, 0.2), 6, Some(2)), // RIGHT
+                    rail_edge(xy(0.8, 0.2), xy(0.2, 0.2), 7, Some(3)), // BOTTOM
+                ]),
+                child_rails: Vec::from([
+                    Rail {
+                        id: 2,
+                        parent_rail_id: Some(1),
+                        edges: Vec::from([
+                            rail_edge(xy(0.4, 0.4), xy(0.4, 0.6), 8,  Some(4)), // LEFT
+                            rail_edge(xy(0.4, 0.6), xy(0.6, 0.6), 9,  Some(5)), // TOP
+                            rail_edge(xy(0.6, 0.6), xy(0.6, 0.4), 10, Some(6)), // RIGHT
+                            rail_edge(xy(0.6, 0.4), xy(0.4, 0.4), 11, Some(7)), // BOTTOM
+                        ]),
+                        child_rails: Vec::new()
+                    }
+                ])
+            }
+        ])
+    };
+    SolverState {
+        root_rail: outer_rail,
+        seed_point: xy(0.4, -0.1),
+        seed_direction: Direction::Clockwise,
+        pipe_spacing: 0.05,
+    }
+}
 
 /** a square with an outer rail and three inner rails */
 pub fn test_case_square_4() -> SolverState {

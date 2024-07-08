@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use loops::{pipe_chain::get_pipe_chain, raylib_structs::WorldBounds, solver::get_all_jumps, solver_types::Direction, test_cases::{test_case_square_4, test_case_square_5, test_case_square_6}};
+    use loops::{pipe_chain::get_pipe_chain, raylib_structs::WorldBounds, solver::get_all_jumps, solver_types::Direction, test_cases::{test_case_square_3, test_case_square_4, test_case_square_5, test_case_square_6}};
 
     #[test]
     fn test() {

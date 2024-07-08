@@ -75,6 +75,18 @@ pub fn project_point_onto_edge(edge:&RailEdge, point:&XY) -> XY {
     project_point_onto_line(point, &edge_as_line)
 }
 
+pub fn get_break_condition(jumps:&Vec<Jump>, next_rail_id: i32) -> bool {
+    if (jumps.is_empty()) { return true; } // not sure why this would occur tbh
+    let forward_jump = jumps.iter().find(|jump| jump.to_rail_id > jump.from_rail_id);
+    let escape_jump = jumps.iter().find(|jump| jump.to_rail_id < jump.from_rail_id);
+
+    if (forward_jump.is_some() && escape_jump.is_some() && forward_jump.unwrap().to_rail_id == escape_jump.unwrap().from_rail_id) {
+        return true; // already allocated early escape from rail we are jumping to
+    }
+
+    return false;
+}
+
 pub fn get_all_jumps(state: &SolverState) -> Vec<Jump> {
     let mut returner: Vec<Jump> = Vec::new();
     let seed_jumps = get_seed_jumps(state);
@@ -82,34 +94,35 @@ pub fn get_all_jumps(state: &SolverState) -> Vec<Jump> {
     let seed_point = &seed_jumps[0].dest_point; // TODO dogshit
     let seed_direction = &seed_jumps[0].dest_direction; // TODO dogshit
     let seed_edge_id = seed_jumps[0].dest_edge_id; // TODO dogshit
-    let iter_1 = get_jumps_atomic(&state, state.root_rail.id, &seed_point, seed_edge_id, &seed_direction, state.pipe_spacing);
-    let forward_jump = iter_1.iter().find(|jump| jump.to_rail_id > jump.from_rail_id).expect("Ooops no forward jump"); // TODO dogshit
-    let next_point = &forward_jump.dest_point;
-    let next_rail_id = forward_jump.to_rail_id;
-    let next_rail = state.get_rail_by_id(next_rail_id);
-    let iter_2 = get_jumps_atomic(&state, next_rail.id, next_point, forward_jump.dest_edge_id, &forward_jump.dest_direction, state.pipe_spacing);
-    let forward_jump = iter_2.iter().find(|jump| jump.to_rail_id > jump.from_rail_id);
-    match forward_jump {
-        None => {},
-        Some(forward_jump) => {
-            let next_point = &forward_jump.dest_point;
-            let next_rail_id = forward_jump.to_rail_id;
-            let next_rail = state.get_rail_by_id(next_rail_id);
 
-            // edge case, don't process if we've already allocated an escape
-            let escape_jump = iter_2.iter().find(|jump| jump.to_rail_id < jump.from_rail_id);
-            let skip = escape_jump.is_some() && escape_jump.unwrap().from_rail_id == next_rail_id;
+    fn rec(returner: &mut Vec<Jump>, state: &SolverState, rail_id: i32, point: &XY, edge_id: i32, direction: &Direction, pipe_spacing: f64) -> () {
+        let jumps = get_jumps_atomic(&state, rail_id, point, edge_id, direction, state.pipe_spacing);
+        let forward_jump = jumps.iter().cloned().find(|jump| jump.to_rail_id > jump.from_rail_id); // I don't love the cloned
+        let escape_jump = jumps.iter().cloned().find(|jump| jump.to_rail_id < jump.from_rail_id); // I don't love the cloned
 
-            if (!skip) {
-                let iter_3 = get_jumps_atomic(&state, next_rail.id, next_point, forward_jump.dest_edge_id, &forward_jump.dest_direction, state.pipe_spacing);
-                returner.extend(iter_3);
-            }
-        },
+        match forward_jump {
+            None => { 
+                returner.extend(jumps);
+                return;
+             },
+            Some(forward_jump) => {
+                let next_rail_id = forward_jump.to_rail_id;
+                let broken = get_break_condition(&jumps, next_rail_id);
+                if (broken) { 
+                    returner.extend(jumps);
+                    return; 
+                }
+                let next_point = &forward_jump.dest_point;
+                let next_edge_id = forward_jump.dest_edge_id;
+                let next_rail = state.get_rail_by_id(next_rail_id);
+                returner.extend(jumps);
+                rec(returner, state, next_rail_id, next_point, next_edge_id, &forward_jump.dest_direction, pipe_spacing);
+            },
+        }
     }
+    rec(&mut returner, &state, state.root_rail.id, &seed_point, seed_edge_id, &seed_direction, state.pipe_spacing);
 
-  returner.extend(seed_jumps);
-    returner.extend(iter_1);
-    returner.extend(iter_2);
+    returner.extend(seed_jumps);
     returner
 }
 

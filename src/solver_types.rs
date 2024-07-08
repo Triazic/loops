@@ -8,7 +8,7 @@ pub enum Direction {
     AntiClockwise
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Jump {
     /** if rail_id is -1, this counts as 'termination' */
     pub from_rail_id: i32,
