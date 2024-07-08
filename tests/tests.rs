@@ -95,6 +95,6 @@ mod tests {
         assert!(forward_one.is_some(), "no expected forward_one jump");
         assert!(forward_two.is_some(), "no expected forward_two jump");
         assert!(escape_one.is_some(), "no expected escape_one jump");
-        assert!(escape_one.is_none(), "has wrong_escape");
+        assert!(wrong_escape.is_none(), "has wrong_escape");
     }
 }

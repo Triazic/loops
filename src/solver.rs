@@ -95,8 +95,15 @@ pub fn get_all_jumps(state: &SolverState) -> Vec<Jump> {
             let next_point = &forward_jump.dest_point;
             let next_rail_id = forward_jump.to_rail_id;
             let next_rail = state.get_rail_by_id(next_rail_id);
-            let iter_3 = get_jumps_atomic(&state, next_rail.id, next_point, forward_jump.dest_edge_id, &forward_jump.dest_direction, state.pipe_spacing);
-            returner.extend(iter_3);
+
+            // edge case, don't process if we've already allocated an escape
+            let escape_jump = iter_2.iter().find(|jump| jump.to_rail_id < jump.from_rail_id);
+            let skip = escape_jump.is_some() && escape_jump.unwrap().from_rail_id == next_rail_id;
+
+            if (!skip) {
+                let iter_3 = get_jumps_atomic(&state, next_rail.id, next_point, forward_jump.dest_edge_id, &forward_jump.dest_direction, state.pipe_spacing);
+                returner.extend(iter_3);
+            }
         },
     }
 
