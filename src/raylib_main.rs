@@ -166,12 +166,12 @@ pub fn raylib_main() {
         // draw_line(&mut d, screen_w, screen_h, 0.1, 0.1, 0.9, 0.9, Color::BLACK);
         // draw_line(&mut d, screen_w, screen_h, 0.1, 0.9, 0.9, 0.1, Color::RED);
 
-        // draw rail edges
-        recursive_draw_rail_edges(&mut ctx, &test_data.root_rail, 0);
-        recursive_draw_rail_edge_ids(&mut ctx, &test_data.root_rail, 0);
+        // // draw rail edges
+        // recursive_draw_rail_edges(&mut ctx, &test_data.root_rail, 0);
+        // recursive_draw_rail_edge_ids(&mut ctx, &test_data.root_rail, 0);
 
-        // draw jumps
-        draw_jumps(&mut ctx, &jumps);
+        // // draw jumps
+        // draw_jumps(&mut ctx, &jumps);
 
         // draw pipe chain
         draw_pipe_chain(&mut ctx, &pipe_chain);

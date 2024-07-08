@@ -207,7 +207,7 @@ fn get_jumps_atomic(state: &SolverState, rail_id: i32, point:&XY, edge_id: i32, 
                                     None => -1,
                                 }
                             },
-                            dest_direction: direction.clone(),
+                            dest_direction: reverse_direction(direction),
                             source_edge_id: edge_to_escape_from.id,
                         })
                     }
@@ -295,7 +295,7 @@ fn get_jumps_atomic(state: &SolverState, rail_id: i32, point:&XY, edge_id: i32, 
                                     None => -1,
                                 }
                             },
-                            dest_direction: direction.clone(),
+                            dest_direction: reverse_direction(&direction),
                             source_edge_id: edge_to_escape_from.id,
                         })
                     }

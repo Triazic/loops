@@ -11,20 +11,17 @@ pub fn get_pipe_chain(state: &SolverState, jumps: &Vec<Jump>) -> Vec<BoundedLine
         let rail = state.get_rail_by_id(rail_id);
         let edge = state.get_edge_by_id(edge_id);
 
-
         // // exit condition can be that an edge has an escape jump on it
         let next_escape_jump = jumps.iter().find(|jump| jump.to_rail_id < jump.from_rail_id && jump.from_rail_id == rail_id);
         let next_forward_jump = jumps.iter().find(|jump| jump.to_rail_id > jump.from_rail_id && jump.from_rail_id == rail_id);
-        if (edge_id == 14) {
-            let x = 4;
-        }
+
         if (next_escape_jump.is_none() && next_forward_jump.is_none()) {
             panic!("How is there neither an escape jump or a forward jump?");
         }
-        // true exit
-        if (next_forward_jump.is_none() && next_escape_jump.is_some() && next_escape_jump.unwrap().to_rail_id == -1) {
-            return;
-        }
+        // // true exit
+        // if (next_forward_jump.is_none() && next_escape_jump.is_some() && next_escape_jump.unwrap().to_rail_id == -1) {
+        //     return;
+        // }
         match next_escape_jump {
             None => {
 
@@ -44,7 +41,11 @@ pub fn get_pipe_chain(state: &SolverState, jumps: &Vec<Jump>) -> Vec<BoundedLine
                         let b = &next_escape_jump.dest_point;
                         let segment = bounded_line(a.clone(), b.clone());
                         pipe_chain.push(segment);
-        
+                        
+                        // true exit if we escape jumped onto rail -1
+                        if (next_escape_jump.to_rail_id == -1) {
+                            return;
+                        }
                         rec(pipe_chain, jumps, state, &next_escape_jump.dest_point, next_escape_jump.dest_edge_id, next_escape_jump.to_rail_id, &next_escape_jump.dest_direction, 0);
                         return;
                     }
