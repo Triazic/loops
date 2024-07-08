@@ -88,16 +88,21 @@ pub fn get_all_jumps(state: &SolverState) -> Vec<Jump> {
     let next_rail_id = forward_jump.to_rail_id;
     let next_rail = state.get_rail_by_id(next_rail_id);
     let iter_2 = get_jumps_atomic(&state, next_rail.id, next_point, forward_jump.dest_edge_id, &forward_jump.dest_direction, state.pipe_spacing);
-    let forward_jump = iter_2.iter().find(|jump| jump.to_rail_id > jump.from_rail_id).expect("Ooops no forward jump"); // TODO dogshit
-    let next_point = &forward_jump.dest_point;
-    let next_rail_id = forward_jump.to_rail_id;
-    let next_rail = state.get_rail_by_id(next_rail_id);
-    let iter_3 = get_jumps_atomic(&state, next_rail.id, next_point, forward_jump.dest_edge_id, &forward_jump.dest_direction, state.pipe_spacing);
+    let forward_jump = iter_2.iter().find(|jump| jump.to_rail_id > jump.from_rail_id);
+    match forward_jump {
+        None => {},
+        Some(forward_jump) => {
+            let next_point = &forward_jump.dest_point;
+            let next_rail_id = forward_jump.to_rail_id;
+            let next_rail = state.get_rail_by_id(next_rail_id);
+            let iter_3 = get_jumps_atomic(&state, next_rail.id, next_point, forward_jump.dest_edge_id, &forward_jump.dest_direction, state.pipe_spacing);
+            returner.extend(iter_3);
+        },
+    }
 
   returner.extend(seed_jumps);
     returner.extend(iter_1);
     returner.extend(iter_2);
-    returner.extend(iter_3);
     returner
 }
 
