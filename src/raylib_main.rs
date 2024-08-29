@@ -131,7 +131,7 @@ fn draw_pipe_chain(ctx: &mut DrawContext, pipe_chain: &Vec<BoundedLine>) -> () {
 }
 
 pub fn raylib_main() {
-    let test_data = test_case_square_3();
+    let test_data = test_case_square_6();
     let world_bounds = WorldBounds {
         min_x: -0.2,
         min_y: -0.2,
